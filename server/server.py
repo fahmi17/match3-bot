@@ -1,55 +1,33 @@
 from flask import Flask, request, jsonify
-import json
-import random
-from server.learning import QLearning
+import cv2
+import numpy as np
+from io import BytesIO
+from PIL import Image
 
 app = Flask(__name__)
-q_agent = QLearning()
 
-def find_best_move(board_state):
-    best_move = None
-    best_score = 0
+def process_image(image_data):
+    """Proses screenshot untuk menemukan tile dan langkah terbaik"""
+    image = Image.open(BytesIO(image_data))
+    img_np = np.array(image)
+    img_gray = cv2.cvtColor(img_np, cv2.COLOR_RGB2GRAY)
 
-    for row in range(len(board_state)):
-        for col in range(len(board_state[row])):
-            # Coba swap dengan tile sebelah kanan
-            if col < len(board_state[row]) - 1:
-                new_board = [row.copy() for row in board_state]
-                new_board[row][col], new_board[row][col+1] = new_board[row][col+1], new_board[row][col]
-                score = evaluate_board(new_board)
-                if score > best_score:
-                    best_score = score
-                    best_move = {"x1": col, "y1": row, "x2": col+1, "y2": row}
+    # TODO: Implementasi deteksi tile dengan OpenCV
+    # Contoh hasil deteksi langkah terbaik (harus diganti dengan yang sesuai)
+    moves = [{"from": (100, 200), "to": (150, 200)}]
 
-            # Coba swap dengan tile bawah
-            if row < len(board_state) - 1:
-                new_board = [row.copy() for row in board_state]
-                new_board[row][col], new_board[row+1][col] = new_board[row+1][col], new_board[row][col]
-                score = evaluate_board(new_board)
-                if score > best_score:
-                    best_score = score
-                    best_move = {"x1": col, "y1": row, "x2": col, "y2": row+1}
+    return moves
 
-    return best_move if best_move else {"x1": 0, "y1": 0, "x2": 1, "y2": 0}  # Random move jika tidak ada yang bagus
+@app.route("/process", methods=["POST"])
+def process():
+    """Menerima gambar dari client dan mengembalikan langkah terbaik"""
+    if "image" not in request.files:
+        return jsonify({"error": "No image uploaded"}), 400
+    
+    image_file = request.files["image"].read()
+    moves = process_image(image_file)
+    
+    return jsonify(moves)
 
-def evaluate_board(board):
-    score = 0
-    for row in board:
-        for i in range(len(row) - 2):
-            if row[i] == row[i+1] == row[i+2]:
-                score += 1
-    return score
-
-@app.route('/get_move', methods=['GET'])
-def get_move():
-    board_state_str = request.args.get("board_state")
-    board_state = json.loads(board_state_str.replace("'", '\"'))  # Konversi string ke list
-
-    move = q_agent.get_best_action(board_state)
-    if move is None:
-        move = find_best_move(board_state)
-
-    return jsonify(move)
-
-if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000)
+if __name__ == "__main__":
+    app.run(host="0.0.0.0", port=5000)
