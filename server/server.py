@@ -1,7 +1,7 @@
 from flask import Flask, request, jsonify
 import json
 import random
-from learning import QLearning
+from server.learning import QLearning
 
 app = Flask(__name__)
 q_agent = QLearning()
