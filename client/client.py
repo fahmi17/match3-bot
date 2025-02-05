@@ -6,7 +6,7 @@ from PIL import ImageGrab
 import io
 
 # URL server di Render
-SERVER_URL = "https://your-server-name.onrender.com/process"
+SERVER_URL = "https://match3-bot.onrender.com/process"
 
 def capture_screen():
     """Ambil screenshot layar emulator dan kirim ke server"""
