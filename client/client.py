@@ -4,7 +4,7 @@ import time
 import cv2
 import numpy as np
 
-SERVER_URL = "https://match3-bot.onrender.com/get_move"
+SERVER_URL = "http://your-server-ip:5000/get_move"
 
 def get_board_state():
     screenshot = pyautogui.screenshot()
